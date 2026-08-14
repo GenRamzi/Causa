@@ -2,9 +2,13 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 ignored = {".git", "target", "node_modules", "dist", "__pycache__"}
+allowed_bilingual = {"docs/causa-bilingual-slides.md"}
 violations: list[tuple[str, int]] = []
 for path in root.rglob("*"):
     if not path.is_file() or any(part in ignored for part in path.parts):
+        continue
+    relative = str(path.relative_to(root))
+    if relative in allowed_bilingual:
         continue
     try:
         text = path.read_text(encoding="utf-8")

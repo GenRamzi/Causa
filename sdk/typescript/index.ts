@@ -6,8 +6,16 @@ export type EventKind = "user.message" | "model.request" | "model.response" | "t
 
 type Json = Record<string, unknown> | unknown[] | string | number | boolean | null;
 
+function canonicalize(value: any): any {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonicalize(value[key])]));
+  }
+  return value;
+}
+
 function canonical(value: Json): Uint8Array {
-  return new TextEncoder().encode(JSON.stringify(value, Object.keys(value as object).sort()));
+  return new TextEncoder().encode(JSON.stringify(canonicalize(value)));
 }
 
 function hex(bytes: Uint8Array): string {
@@ -51,7 +59,7 @@ export class Tape {
       name,
       input,
       output,
-      labels: labels.map(label => { const [namespace, value] = label.split(":", 2); return { namespace, value }; }),
+      labels: [...labels].sort().map(label => { const [namespace, value] = label.split(":", 2); return { namespace, value }; }),
       parents: this.events.length ? [this.events[this.events.length - 1].hash] : [],
     };
     item.hash = digest(item);

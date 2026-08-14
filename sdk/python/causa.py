@@ -46,7 +46,7 @@ class Tape:
             "name": name,
             "input": input,
             "output": output,
-            "labels": [{"namespace": value.split(":", 1)[0], "value": value.split(":", 1)[1]} for value in (labels or [])],
+            "labels": [{"namespace": value.split(":", 1)[0], "value": value.split(":", 1)[1]} for value in sorted(labels or [])],
             "parents": parents,
         }
         item["hash"] = _hash_value(item)

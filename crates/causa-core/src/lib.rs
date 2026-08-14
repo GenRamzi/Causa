@@ -53,17 +53,29 @@ impl Label {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum EventKind {
+    #[serde(rename = "user.message", alias = "UserMessage")]
     UserMessage,
+    #[serde(rename = "model.request", alias = "ModelRequest")]
     ModelRequest,
+    #[serde(rename = "model.response", alias = "ModelResponse")]
     ModelResponse,
+    #[serde(rename = "tool.call", alias = "ToolCall")]
     ToolCall,
+    #[serde(rename = "tool.result", alias = "ToolResult")]
     ToolResult,
+    #[serde(rename = "fs.read", alias = "FileRead")]
     FileRead,
+    #[serde(rename = "fs.write", alias = "FileWrite")]
     FileWrite,
+    #[serde(rename = "http.request", alias = "HttpRequest")]
     HttpRequest,
+    #[serde(rename = "state.write", alias = "StateWrite")]
     StateWrite,
+    #[serde(rename = "guard.decision", alias = "GuardDecision")]
     GuardDecision,
+    #[serde(rename = "note", alias = "Note")]
     Note,
+    #[serde(rename = "process.exit", alias = "ProcessExit")]
     ProcessExit,
 }
 
@@ -124,7 +136,7 @@ impl Event {
         event
     }
 
-    fn canonical_without_hash(&self) -> Vec<u8> {
+    pub fn canonical_without_hash(&self) -> Vec<u8> {
         let value = serde_json::json!({
             "step": self.step,
             "kind": self.kind,

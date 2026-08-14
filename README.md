@@ -1,5 +1,7 @@
 # Causa
 
+[![Sponsor Causa](https://img.shields.io/badge/Sponsor-Causa-DB61A2?logo=githubsponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/GenRamzi)
+
 > **The black box for AI agents. Record everything. Replay anything. Prove why.**
 
 Causa is a local, open-source runtime for recording agent executions as portable, content-addressed `.causa` tapes. The current v0.1 preview provides a deterministic event model, BLAKE3 content hashes, Merkle integrity verification, optional Ed25519 signatures, provenance labels, an offline replay view, fork/diff/bisect workflows, guard-policy evaluation, and a local OpenAI-compatible proxy health surface.
@@ -11,6 +13,9 @@ Agent logs tell you what happened, but usually not which input caused the outcom
 > **Replay is capture-based.** Causa replays recorded model/tool/process results; it does not claim that an external provider is deterministic.
 
 ## Quickstart
+
+- **[Quick Start Guide](docs/QUICKSTART.md)** — use Causa from Python, TypeScript, or any OpenAI-compatible client.
+- Runnable examples: [`examples/python_agent.py`](examples/python_agent.py) and [`examples/typescript_agent.ts`](examples/typescript_agent.ts).
 
 The repository is a Cargo workspace. Install Rust 1.75+ or the current stable toolchain, then run:
 
@@ -104,3 +109,7 @@ See [`SECURITY.md`](SECURITY.md) for reporting and threat-model notes.
 ## License
 
 The core and CLI are Apache-2.0. The format specification is CC BY 4.0. Example museum tapes are intended to be redacted and CC0.
+
+## Support Causa
+
+If Causa is useful to your team, consider supporting continued maintenance through [GitHub Sponsors](https://github.com/sponsors/GenRamzi).
