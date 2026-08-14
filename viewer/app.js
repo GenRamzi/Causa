@@ -1,18 +1,34 @@
 const state = { tape: null, events: [] };
 const $ = (id) => document.getElementById(id);
 
+function validateTape(tape) {
+  const errors = [];
+  if (tape.format !== '0.1') errors.push(`unsupported format ${tape.format || 'missing'}`);
+  if (!tape.metadata || !tape.metadata.run_id) errors.push('missing run metadata');
+  if (!Array.isArray(tape.events)) errors.push('events must be an array');
+  if (!tape.merkle_root || !/^[0-9a-f]{64}$/.test(tape.merkle_root)) errors.push('missing or malformed Merkle root');
+  for (const [index, event] of (tape.events || []).entries()) {
+    if (!event.step || !event.kind || !event.name || !event.hash) errors.push(`event ${index + 1} is incomplete`);
+    if (event.hash && !/^[0-9a-f]{64}$/.test(event.hash)) errors.push(`event ${index + 1} has malformed hash`);
+  }
+  return errors;
+}
+
 function setTape(tape, filename) {
   state.tape = tape;
   state.events = Array.isArray(tape.events) ? tape.events : [];
+  const validationErrors = validateTape(tape);
   $('dropzone').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('summary').innerHTML = [
     ['RUN', tape.metadata?.run_id || 'unknown'],
     ['STEPS', state.events.length],
     ['FORMAT', tape.format || 'unknown'],
-    ['MERKLE ROOT', (tape.merkle_root || '').slice(0, 18) + '…']
+    ['MERKLE ROOT', (tape.merkle_root || '').slice(0, 18) + '…'],
+    ['SOURCE RUN', tape.metadata?.source_run_id || '—']
   ].map(([key, value]) => `<div class="metric"><span>${escapeHtml(key)}</span><strong>${escapeHtml(String(value))}</strong></div>`).join('');
-  $('integrity').textContent = `Loaded locally · ${filename || 'tape'}`;
+  $('integrity').textContent = validationErrors.length ? `Invalid tape shape: ${validationErrors.join('; ')}` : `Local structure valid · cryptographic verification remains in causa verify · ${filename || 'tape'}`;
+  $('integrity').className = validationErrors.length ? 'error' : 'valid';
   render();
 }
 
@@ -36,7 +52,9 @@ function select(step) {
   if (!event) return;
   $('detail').textContent = JSON.stringify({
     step: event.step, kind: event.kind, name: event.name, hash: event.hash,
-    parents: event.parents || [], labels: event.labels || [], input: event.input, output: event.output
+    parents: event.parents || [],
+    derived_from: state.tape.metadata?.source_run_id || null,
+    labels: event.labels || [], input: event.input, output: event.output
   }, null, 2);
   document.querySelectorAll('.event').forEach(b => b.classList.toggle('selected', Number(b.dataset.step) === step));
 }

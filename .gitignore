@@ -4,3 +4,7 @@ node_modules/
 *.log
 .env
 .env.*
+
+node_modules/
+sdk/typescript/dist/
+sdk/typescript/package-lock.json

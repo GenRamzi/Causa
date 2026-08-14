@@ -26,6 +26,18 @@ cargo run -p causa -- bisect fixtures/demo-fail.causa \
 
 The demo creates a good and a failing tape. `bisect` identifies the first divergent causal node: the search result whose currency column changed order.
 
+To run the local OpenAI-compatible proxy with recording:
+
+```bash
+cargo run -p causa -- up --record run.causa
+curl http://127.0.0.1:7777/v1/chat/completions \\
+  -H 'content-type: application/json' \\
+  -d '{"model":"causa-replay","messages":[{"role":"user","content":"Hello"}]}'
+causa verify run.causa
+```
+
+The proxy supports standard JSON completions and Server-Sent Events when `stream: true`. To serve a recorded response offline, run `causa up --replay run.causa`.
+
 To record an ordinary local command:
 
 ```bash
@@ -40,14 +52,15 @@ cargo run -p causa -- verify run.causa
 |---|---|
 | `demo` | Create a reproducible good/bad pair without an API key. |
 | `record -- <command>` | Capture a local process start and exit into a tape. |
-| `replay <tape>` | Inspect the recorded timeline offline, optionally from a step. |
+| `replay <tape>` | Inspect the recorded timeline offline, optionally from a step; use `--set step:N@fixture.json -o derived.causa` for a safe output override. |
 | `view <tape>` | Print the causal timeline and provenance labels; use `--json` for machine output. |
 | `verify <tape>` | Validate format version, event hashes, Merkle root, and signatures. |
-| `fork <tape> --at N` | Create an alternate timeline up to a selected step. |
+| `fork <tape> --at N` | Create an alternate timeline up to a selected step while preserving source lineage metadata. |
 | `diff <left> <right>` | Compare causal nodes and report the first divergence. |
 | `bisect <bad> --good <good>` | Isolate the first divergent node when an assertion flips. |
-| `guard <tape> [--policy policy.txt]` | Evaluate provenance-aware deny rules; use `--audit` for non-blocking review. |
-| `up` | Start a local OpenAI-compatible proxy surface on `127.0.0.1:7777`. |
+| `guard <tape> [--policy policy.txt]` | Evaluate provenance-aware rules; use `--audit` for non-blocking review and `-o decisions.causa` to save decision events. |
+| `test [directory]` | Verify every `.causa` tape in a directory as a local regression suite. |
+| `up` | Start a local OpenAI-compatible proxy on `127.0.0.1:7777`; use `--record tape.causa` to capture requests and responses or `--replay tape.causa` to serve recorded responses. |
 
 ## Tape format
 
@@ -70,6 +83,14 @@ causa CLI
        │
 viewer/ + sdk/
   account-free local viewer · Python event builder · TypeScript event builder
+```
+
+Replay overrides use a documented, bounded syntax rather than executing arbitrary expressions:
+
+```bash
+cargo run -p causa -- replay run.causa \\
+  --set step:2@fixtures/alternate-result.json \\
+  --output forked-replay.causa
 ```
 
 The implementation intentionally keeps Cloud, Enterprise storage, and framework-specific adapters out of the v0.1 local core. Their interfaces are documented as follow-on work in [`ROADMAP.md`](ROADMAP.md).

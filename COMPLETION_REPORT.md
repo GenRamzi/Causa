@@ -1,30 +1,36 @@
-# تقرير إكمال مشروع Causa
+# Causa Completion Report
 
-## الحالة
+## Status
 
-تم تحويل المستودع الفارغ `GenRamzi/Causa` إلى **Causa v0.1 Preview محلي قابل للبناء والتجربة**، ثم رفع التنفيذ إلى GitHub في commit `ca6521b` على الفرع `main`.
+The previously empty `GenRamzi/Causa` repository has been turned into a buildable and testable **Causa v0.1 local preview**. This completion pass extends the original implementation with a recording OpenAI-compatible proxy, streaming responses, replay outputs, lineage-preserving forks, structured diffs, guard decision tapes, a tape regression command, SDK alignment, and v0.1 schema documentation.
 
-## ما تم تنفيذه
+## Implemented capabilities
 
-| المجال | ما أصبح متاحاً |
+| Area | Available capability |
 |---|---|
-| النواة | نموذج أحداث سببية، علاقات parent، provenance labels، BLAKE3 content hashes، Merkle root، والتحقق من سلامة الشريط. |
-| التوقيع | توقيع Ed25519 اختياري والتحقق منه، مع توضيح أن التوقيع لا يشفر المحتوى. |
-| صيغة `.causa` | JSON envelope بإصدار `0.1`، metadata، events، integrity، وcompatibility notes. |
-| CLI | `demo`, `record`, `replay`, `view`, `verify`, `fork`, `diff`, `bisect`, `guard`, و`up`. |
-| التجربة | fixtures لسيناريو good/bad، عزل أول عقدة مختلفة، إعادة تشغيل offline، وفرع زمني بديل. |
-| الحماية | evaluator أولي لقواعد provenance وdeny/audit، assertion grammar محدودة وآمنة، وسياسة privacy/no-telemetry. |
-| الواجهة | عارض static محلي يفتح `.causa` عبر drag-and-drop ويعرض timeline وlabels وتفاصيل الأحداث. |
-| التكامل | Python SDK وTypeScript SDK للتسجيل الصريح، وNode wrapper لـ `npx causa demo`. |
-| الجودة | Rust workspace، Cargo.lock، rust-toolchain، CI لـ fmt/test/clippy، توثيق architecture/security/contributing/roadmap. |
+| Core | Causal events, parent links, provenance labels, BLAKE3 content hashes, Merkle roots, and integrity validation. |
+| Signatures | Optional Ed25519 signing and verification. A signature authenticates the envelope; it does not encrypt content. |
+| Tape format | Versioned JSON envelope with metadata, event nodes, lineage fields, integrity data, and optional signatures. |
+| Recording | Local child-process recording plus an OpenAI-compatible proxy that records request and response events. |
+| Streaming | Server-Sent Events responses for `stream: true`, with the same response captured into the tape. |
+| Replay | Offline event inspection, bounded JSON output overrides, replay output tapes, and recorded-response serving. |
+| Timeline tools | Forks preserve source run metadata and hashes; diffs report changed fields; bisect reports the first divergent node and blast radius. |
+| Guard | A documented policy grammar, inherited-label evaluation, enforce/audit modes, and optional guard decision tapes. |
+| CLI | `demo`, `record`, `replay`, `view`, `verify`, `fork`, `diff`, `bisect`, `guard`, `test`, and `up`. |
+| Viewer | Local browser viewer with structural validation, lineage metadata, filtering, event details, and explicit cryptographic verification guidance. |
+| SDKs | Python and TypeScript helpers aligned with the Rust BLAKE3 and Merkle semantics. |
+| Specification | English v0.1 JSON Schema and conformance notes. |
+| Quality | Rust workspace, locked dependencies, toolchain pinning, CI, smoke scripts, and English-only repository content. |
 
-## التحقق المنفذ
+## Validation performed
 
-تم بنجاح تشغيل `cargo fmt --all -- --check`، و`cargo test --all`، و`cargo clippy --all-targets --all-features -- -D warnings`. اختبارات النواة الأربعة نجحت، بما في ذلك ثبات hash، round-trip، التحقق من signature، وتقييد assertions.
+The project passes `cargo fmt --all -- --check`, `cargo test --all`, and `cargo clippy --all-targets --all-features -- -D warnings`. The core suite covers stable hashing, round-trip serialization, signatures, bounded assertions, fork lineage, replay overrides, and nested redaction.
 
-تم كذلك اختبار مسار demo ثم `verify` و`replay` و`bisect` و`fork` و`diff` و`guard --audit`. كما تم اختبار proxy المحلي على `/health` و`/v1/models` و`/v1/chat/completions`، والتحقق من محتويات حزمة npm عبر `npm pack --dry-run`.
+The proxy was tested with health checks, standard JSON completions, Server-Sent Events, request/response recording, tape verification, and offline replay. The CLI was tested with demo generation, replay overrides, lineage-preserving forks, structured diffs, guard annotation, and the tape regression command.
 
-## التشغيل السريع
+The TypeScript SDK builds successfully, the Python SDK writes a valid tape using the BLAKE3 dependency, the JSON Schema parses successfully, and JavaScript syntax checks pass for the viewer and npm wrapper.
+
+## Quickstart
 
 ```bash
 cargo test --all
@@ -36,8 +42,18 @@ cargo run -p causa -- bisect fixtures/demo-fail.causa \
   --assert 'final.status == "ok"'
 ```
 
-لفتح العارض: افتح `viewer/index.html` محلياً وأسقط ملف `.causa` عليه.
+To record OpenAI-compatible local traffic:
 
-## الحدود المعلنة بصدق
+```bash
+cargo run -p causa -- up --record run.causa
+```
 
-هذا الإصدار يحقق المسار المحلي الأساسي، لكنه لا يدّعي بعد التقاطاً شاملاً لحركة مزودي النماذج streaming، أو وسيط MCP كاملاً، أو adapters مصانة لإطارات LangGraph/CrewAI/Agents SDK/Vercel، أو تخزيناً مضغوطاً chunked، أو Cloud/Enterprise. هذه العناصر موثقة في `ROADMAP.md` كخطوات لاحقة وليست مخفية خلف واجهة تبدو مكتملة.
+To serve the recorded response offline:
+
+```bash
+cargo run -p causa -- up --replay run.causa
+```
+
+## Deliberate v0.1 boundaries
+
+The local preview does not claim full arbitrary-provider streaming capture, a complete MCP protocol mediator, maintained adapters for every agent framework, chunked compressed storage, a cloud control plane, or enterprise tenancy. Those items are documented in `ROADMAP.md` as future milestones rather than being presented as complete features.

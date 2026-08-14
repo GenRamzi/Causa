@@ -157,6 +157,10 @@ pub struct TapeMetadata {
     pub platform: String,
     pub mode: String,
     pub content_policy: String,
+    #[serde(default)]
+    pub source_run_id: Option<String>,
+    #[serde(default)]
+    pub fork_at: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -271,6 +275,94 @@ impl Tape {
         Ok(tape)
     }
 
+    pub fn append_event(
+        &mut self,
+        kind: EventKind,
+        name: impl Into<String>,
+        input: serde_json::Value,
+        output: serde_json::Value,
+        labels: impl IntoIterator<Item = Label>,
+    ) -> String {
+        let step = self.events.len() as u64 + 1;
+        let parents = self
+            .events
+            .last()
+            .map(|event| vec![event.hash.clone()])
+            .unwrap_or_default();
+        let event = Event::new(step, kind, name, input, output, labels, parents);
+        let hash = event.hash.clone();
+        self.events.push(event);
+        self.merkle_root = merkle_root(&self.events);
+        self.signature = None;
+        hash
+    }
+
+    pub fn fork_at(&self, step: u64, note: impl Into<String>) -> Result<Self> {
+        if step == 0 || step > self.events.len() as u64 {
+            anyhow::bail!("fork step is outside tape");
+        }
+        let mut fork = self.clone();
+        fork.metadata.run_id = format!("{}-fork-{}", self.metadata.run_id, step);
+        fork.metadata.mode = "fork".to_string();
+        fork.metadata.source_run_id = Some(self.metadata.run_id.clone());
+        fork.metadata.fork_at = Some(step);
+        fork.events.truncate(step as usize);
+        let parent = fork
+            .events
+            .last()
+            .map(|event| event.hash.clone())
+            .unwrap_or_default();
+        let next_step = step + 1;
+        fork.events.push(Event::new(
+            next_step,
+            EventKind::Note,
+            "fork",
+            serde_json::json!({"source_run_id": self.metadata.run_id, "at": step}),
+            serde_json::json!({"note": note.into()}),
+            [],
+            vec![parent],
+        ));
+        fork.merkle_root = merkle_root(&fork.events);
+        fork.signature = None;
+        Ok(fork)
+    }
+
+    pub fn override_output(&self, step: u64, output: serde_json::Value) -> Result<Self> {
+        if step == 0 || step > self.events.len() as u64 {
+            anyhow::bail!("override step is outside tape");
+        }
+        let mut derived = self.clone();
+        derived.metadata.run_id = format!("{}-replay-{}", self.metadata.run_id, step);
+        derived.metadata.mode = "replay-override".to_string();
+        derived.metadata.source_run_id = Some(self.metadata.run_id.clone());
+        derived.metadata.fork_at = Some(step);
+        derived.signature = None;
+        derived.events.clear();
+        for source in &self.events {
+            let parents = derived
+                .events
+                .last()
+                .map(|event| vec![event.hash.clone()])
+                .unwrap_or_default();
+            let event = Event::new(
+                source.step,
+                source.kind.clone(),
+                source.name.clone(),
+                source.input.clone(),
+                if source.step == step {
+                    output.clone()
+                } else {
+                    source.output.clone()
+                },
+                source.labels.clone(),
+                parents,
+            );
+            derived.events.push(event);
+        }
+        derived.merkle_root = merkle_root(&derived.events);
+        Ok(derived)
+    }
+
     pub fn event_by_step(&self, step: u64) -> Option<&Event> {
         self.events.iter().find(|event| event.step == step)
     }
@@ -366,6 +458,8 @@ pub fn new_run_metadata(command: Option<String>, mode: impl Into<String>) -> Tap
         platform: std::env::consts::OS.to_string(),
         mode: mode.into(),
         content_policy: "recorded-content".to_string(),
+        source_run_id: None,
+        fork_at: None,
     }
 }
 
@@ -523,6 +617,64 @@ mod tests {
         let key = Tape::generate_signing_key();
         tape.sign(&key);
         assert!(tape.verify_integrity().is_ok());
+    }
+
+    #[test]
+    fn fork_preserves_source_lineage() {
+        let mut builder = TapeBuilder::new(metadata());
+        builder.push(
+            EventKind::UserMessage,
+            "input",
+            serde_json::json!({"text":"hi"}),
+            serde_json::json!({"accepted":true}),
+            [Label::new("user", "trusted")],
+        );
+        builder.push(
+            EventKind::ToolResult,
+            "search",
+            serde_json::json!({}),
+            serde_json::json!({"value":1}),
+            [Label::new("web", "untrusted")],
+        );
+        let source = builder.finish();
+        let fork = source.fork_at(1, "alternate result").unwrap();
+        assert_eq!(fork.events[0].hash, source.events[0].hash);
+        assert_eq!(fork.metadata.source_run_id, Some(source.metadata.run_id));
+        assert_eq!(fork.metadata.fork_at, Some(1));
+        assert!(fork.verify_integrity().is_ok());
+    }
+
+    #[test]
+    fn replay_override_changes_only_selected_output() {
+        let mut builder = TapeBuilder::new(metadata());
+        builder.push(
+            EventKind::ToolResult,
+            "search",
+            serde_json::json!({}),
+            serde_json::json!({"value":1}),
+            [],
+        );
+        builder.push(
+            EventKind::ProcessExit,
+            "final",
+            serde_json::json!({}),
+            serde_json::json!({"status":"ok"}),
+            [],
+        );
+        let source = builder.finish();
+        let derived = source
+            .override_output(1, serde_json::json!({"value":2}))
+            .unwrap();
+        assert_eq!(derived.events[0].output, serde_json::json!({"value":2}));
+        assert_eq!(derived.events[1].output, source.events[1].output);
+        assert!(derived.verify_integrity().is_ok());
+    }
+
+    #[test]
+    fn redaction_replaces_nested_sensitive_keys() {
+        let keys = ["token".to_string()].into_iter().collect();
+        let result = redact_value(&serde_json::json!({"nested":{"token":"secret"}}), &keys);
+        assert_eq!(result["nested"]["token"], "[REDACTED]");
     }
 
     #[test]
