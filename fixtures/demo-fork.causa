@@ -1,0 +1,87 @@
+{
+  "format": "0.1",
+  "metadata": {
+    "run_id": "run-fa45ee3c1692",
+    "created_at": "unix:1786666525",
+    "command": "fork fixtures/demo-fail.causa at 2",
+    "platform": "linux",
+    "mode": "fork",
+    "content_policy": "recorded-content"
+  },
+  "events": [
+    {
+      "step": 1,
+      "kind": "UserMessage",
+      "name": "user.prompt",
+      "input": {
+        "text": "Find the price"
+      },
+      "output": {
+        "accepted": true
+      },
+      "labels": [
+        {
+          "namespace": "user",
+          "value": "trusted"
+        }
+      ],
+      "parents": [],
+      "hash": "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+    },
+    {
+      "step": 2,
+      "kind": "ToolCall",
+      "name": "search.results",
+      "input": {
+        "query": "price"
+      },
+      "output": {
+        "columns": [
+          "item",
+          "amount",
+          "currency"
+        ],
+        "rows": [
+          [
+            "widget",
+            10,
+            "EUR"
+          ]
+        ]
+      },
+      "labels": [
+        {
+          "namespace": "tool",
+          "value": "search"
+        },
+        {
+          "namespace": "web",
+          "value": "untrusted"
+        }
+      ],
+      "parents": [
+        "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+      ],
+      "hash": "f0410e5e0d8d0c54e6d8d0ad0cce40c252fc0594055eb0c6d795dd15e4770a2b"
+    },
+    {
+      "step": 3,
+      "kind": "Note",
+      "name": "fork",
+      "input": {
+        "at": 2,
+        "source": "fixtures/demo-fail.causa"
+      },
+      "output": {
+        "note": "replace search fixture"
+      },
+      "labels": [],
+      "parents": [
+        "f0410e5e0d8d0c54e6d8d0ad0cce40c252fc0594055eb0c6d795dd15e4770a2b"
+      ],
+      "hash": "49249b17454cb912dff1cf537380200c3dc7da433043fed745eabe0245cd88dc"
+    }
+  ],
+  "merkle_root": "b83eaa5b24c1cd6a2a7e10468c601071e48d88443e99990093ab66467d0c1831",
+  "signature": null
+}

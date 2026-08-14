@@ -1,0 +1,10 @@
+{
+  "name": "causa",
+  "version": "0.1.0",
+  "description": "The black box for AI agents",
+  "license": "Apache-2.0",
+  "bin": { "causa": "bin/causa.js" },
+  "files": ["bin", "fixtures", "viewer", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": { "demo": "node bin/causa.js demo" }
+}

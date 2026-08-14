@@ -1,0 +1,106 @@
+{
+  "format": "0.1",
+  "metadata": {
+    "run_id": "run-834b61fa8d40",
+    "created_at": "unix:1786666525",
+    "command": "causa demo",
+    "platform": "linux",
+    "mode": "demo",
+    "content_policy": "recorded-content"
+  },
+  "events": [
+    {
+      "step": 1,
+      "kind": "UserMessage",
+      "name": "user.prompt",
+      "input": {
+        "text": "Find the price"
+      },
+      "output": {
+        "accepted": true
+      },
+      "labels": [
+        {
+          "namespace": "user",
+          "value": "trusted"
+        }
+      ],
+      "parents": [],
+      "hash": "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+    },
+    {
+      "step": 2,
+      "kind": "ToolCall",
+      "name": "search.results",
+      "input": {
+        "query": "price"
+      },
+      "output": {
+        "columns": [
+          "item",
+          "currency",
+          "amount"
+        ],
+        "rows": [
+          [
+            "widget",
+            "USD",
+            10
+          ]
+        ]
+      },
+      "labels": [
+        {
+          "namespace": "tool",
+          "value": "search"
+        },
+        {
+          "namespace": "web",
+          "value": "untrusted"
+        }
+      ],
+      "parents": [
+        "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+      ],
+      "hash": "e181ff89e8cd7af8c8b15c0ae5462de8ae5caaed85da371789df7a4d483b9d97"
+    },
+    {
+      "step": 3,
+      "kind": "ModelResponse",
+      "name": "agent.answer",
+      "input": {
+        "context_step": 2
+      },
+      "output": {
+        "answer": "The widget costs 10 USD.",
+        "status": "ok"
+      },
+      "labels": [
+        {
+          "namespace": "web",
+          "value": "untrusted"
+        }
+      ],
+      "parents": [
+        "e181ff89e8cd7af8c8b15c0ae5462de8ae5caaed85da371789df7a4d483b9d97"
+      ],
+      "hash": "ba2e50e0e323216f7e65ac70c21379dd3861a11dde18a89242e8db37d805e949"
+    },
+    {
+      "step": 4,
+      "kind": "ProcessExit",
+      "name": "final",
+      "input": {},
+      "output": {
+        "status": "ok"
+      },
+      "labels": [],
+      "parents": [
+        "ba2e50e0e323216f7e65ac70c21379dd3861a11dde18a89242e8db37d805e949"
+      ],
+      "hash": "4563c7be1e027a4be1e4a36bd57dd31c38ee39472398d6d55562d0cd7d534236"
+    }
+  ],
+  "merkle_root": "7cda52cb28595718d2e331a60a2815662b3c38aa43cea05735f972014502f031",
+  "signature": null
+}

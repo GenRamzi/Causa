@@ -1,0 +1,16 @@
+[package]
+name = "causa-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Portable causal tape format and deterministic replay primitives for AI agents"
+
+[dependencies]
+anyhow.workspace = true
+blake3.workspace = true
+ed25519-dalek.workspace = true
+hex.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

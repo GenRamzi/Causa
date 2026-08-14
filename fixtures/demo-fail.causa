@@ -1,0 +1,106 @@
+{
+  "format": "0.1",
+  "metadata": {
+    "run_id": "run-6d5953b9ddeb",
+    "created_at": "unix:1786666525",
+    "command": "causa demo",
+    "platform": "linux",
+    "mode": "demo",
+    "content_policy": "recorded-content"
+  },
+  "events": [
+    {
+      "step": 1,
+      "kind": "UserMessage",
+      "name": "user.prompt",
+      "input": {
+        "text": "Find the price"
+      },
+      "output": {
+        "accepted": true
+      },
+      "labels": [
+        {
+          "namespace": "user",
+          "value": "trusted"
+        }
+      ],
+      "parents": [],
+      "hash": "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+    },
+    {
+      "step": 2,
+      "kind": "ToolCall",
+      "name": "search.results",
+      "input": {
+        "query": "price"
+      },
+      "output": {
+        "columns": [
+          "item",
+          "amount",
+          "currency"
+        ],
+        "rows": [
+          [
+            "widget",
+            10,
+            "EUR"
+          ]
+        ]
+      },
+      "labels": [
+        {
+          "namespace": "tool",
+          "value": "search"
+        },
+        {
+          "namespace": "web",
+          "value": "untrusted"
+        }
+      ],
+      "parents": [
+        "02e16c42259686ee113c84e97e30a9dbd7a119754d75441cede676da548d6322"
+      ],
+      "hash": "f0410e5e0d8d0c54e6d8d0ad0cce40c252fc0594055eb0c6d795dd15e4770a2b"
+    },
+    {
+      "step": 3,
+      "kind": "ModelResponse",
+      "name": "agent.answer",
+      "input": {
+        "context_step": 2
+      },
+      "output": {
+        "answer": "Currency column changed.",
+        "status": "error"
+      },
+      "labels": [
+        {
+          "namespace": "web",
+          "value": "untrusted"
+        }
+      ],
+      "parents": [
+        "f0410e5e0d8d0c54e6d8d0ad0cce40c252fc0594055eb0c6d795dd15e4770a2b"
+      ],
+      "hash": "f00877ed0c3cc283e7ab9122b48589deb540cc59ef181e975bafd86b49d5f4fa"
+    },
+    {
+      "step": 4,
+      "kind": "ProcessExit",
+      "name": "final",
+      "input": {},
+      "output": {
+        "status": "error"
+      },
+      "labels": [],
+      "parents": [
+        "f00877ed0c3cc283e7ab9122b48589deb540cc59ef181e975bafd86b49d5f4fa"
+      ],
+      "hash": "2726c8ddd55001f262a2099b5a858607fd79a3a085abe1d7baf7c35d4c2c7244"
+    }
+  ],
+  "merkle_root": "4ecce162b168e8df8c8dbeb4922c9fec04b92a9478b7e545c8264a84d7ceb6c0",
+  "signature": null
+}

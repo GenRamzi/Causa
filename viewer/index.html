@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Causa Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div><p class="eyebrow">CAUSA / LOCAL VIEWER</p><h1>Record everything.<br><em>Replay anything.</em></h1></div>
+      <label class="file-button">Open .causa<input id="fileInput" type="file" accept=".causa,.json,application/json"></label>
+    </header>
+    <section id="dropzone" class="dropzone"><strong>Drop a .causa tape here</strong><span>Files stay in your browser. Nothing is uploaded.</span></section>
+    <section id="app" class="hidden">
+      <div class="summary-grid" id="summary"></div>
+      <div class="toolbar"><input id="filter" placeholder="Filter by event, kind, or label…"><span id="integrity"></span></div>
+      <div class="content-grid"><section class="panel"><div class="panel-title"><span>CAUSAL TIMELINE</span><span id="count"></span></div><div id="timeline"></div></section><aside class="panel"><div class="panel-title">EVENT DETAIL</div><pre id="detail">Select an event to inspect its inputs, outputs, parents, and provenance.</pre></aside></div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

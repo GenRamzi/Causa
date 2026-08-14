@@ -1,0 +1,5 @@
+# Causa preview policy syntax
+# Lines are intentionally conservative and evaluated by `causa guard`.
+deny: tool.email.send when tainted_by(source.web)
+deny: tool.http.post when context has label(pii)
+allow: tool.fs.write when path under ./workspace
